@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
+from google_auth_oauthlib.flow import InstalledAppFlow, Flow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 import os.path
@@ -29,24 +29,43 @@ def authenticate_google():
         else:
             # Use secrets from st.secrets
             client_config = {
-                "installed": {
+                "web": {
                     "client_id": st.secrets["google"]["client_id"],
                     "client_secret": st.secrets["google"]["client_secret"],
-                    "redirect_uris": [st.secrets["google"]["redirect_uri"]],  # Ensure this is included
                     "auth_uri": st.secrets["google"]["auth_uri"],
                     "token_uri": st.secrets["google"]["token_uri"],
+                    "redirect_uris": [st.secrets["google"]["redirect_uri"]],
+                    "javascript_origins": [st.secrets["google"]["redirect_uri"].rstrip("/")]
                 }
             }
-            flow = InstalledAppFlow.from_client_config(client_config, SCOPES)
-            # Use the console flow instead of local_server
-            auth_url, _ = flow.authorization_url(prompt='consent')
+            
+            # Create the flow using the client config
+            flow = Flow.from_client_config(
+                client_config,
+                scopes=SCOPES,
+                redirect_uri=st.secrets["google"]["redirect_uri"]
+            )
+            
+            # Generate the authorization URL
+            auth_url, _ = flow.authorization_url(
+                access_type='offline',
+                include_granted_scopes='true',
+                prompt='consent'
+            )
+            
+            # Display the authorization URL and prompt for the code
             st.write(f"Please visit this URL to authorize the application: {auth_url}")
             auth_code = st.text_input("Enter the authorization code:")
+            
             if auth_code:
-                flow.fetch_token(code=auth_code)
-                creds = flow.credentials
-                with open('token.json', 'w') as token:
-                    token.write(creds.to_json())
+                try:
+                    flow.fetch_token(code=auth_code)
+                    creds = flow.credentials
+                    with open('token.json', 'w') as token:
+                        token.write(creds.to_json())
+                except Exception as e:
+                    st.error(f"Error during authentication: {str(e)}")
+                    return None
             else:
                 st.error("Authorization code is required.")
                 return None
