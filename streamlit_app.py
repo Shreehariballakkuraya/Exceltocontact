@@ -19,7 +19,6 @@ project_id = google_secrets["project_id"]
 auth_uri = google_secrets["auth_uri"]
 token_uri = google_secrets["token_uri"]
 auth_provider_x509_cert_url = google_secrets["auth_provider_x509_cert_url"]
-
 def authenticate_google():
     creds = None
     if os.path.exists('token.json'):
@@ -33,7 +32,7 @@ def authenticate_google():
                 "installed": {
                     "client_id": st.secrets["google"]["client_id"],
                     "client_secret": st.secrets["google"]["client_secret"],
-                    "redirect_uris": [st.secrets["google"]["redirect_uri"]],
+                    "redirect_uris": [st.secrets["google"]["redirect_uri"]],  # Ensure this is included
                     "auth_uri": st.secrets["google"]["auth_uri"],
                     "token_uri": st.secrets["google"]["token_uri"],
                 }
