@@ -9,6 +9,17 @@ import os.path
 # If modifying these SCOPES, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/contacts']
 
+# Access secrets
+google_secrets = st.secrets["google"]
+
+client_id = google_secrets["client_id"]
+client_secret = google_secrets["client_secret"]
+redirect_uri = google_secrets["redirect_uri"]
+project_id = google_secrets["project_id"]
+auth_uri = google_secrets["auth_uri"]
+token_uri = google_secrets["token_uri"]
+auth_provider_x509_cert_url = google_secrets["auth_provider_x509_cert_url"]
+
 def authenticate_google():
     creds = None
     if os.path.exists('token.json'):
