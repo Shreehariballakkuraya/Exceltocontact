@@ -47,11 +47,10 @@ def authenticate_google():
                 }
             }
             
-            # Create the flow using the client config
             flow = Flow.from_client_config(
                 client_config,
                 scopes=SCOPES,
-                redirect_uri="https://exceltocontacts.streamlit.app"  # Match exactly with Google Cloud Console
+                redirect_uri="https://exceltocontacts.streamlit.app"
             )
             
             # Generate the authorization URL
@@ -61,12 +60,26 @@ def authenticate_google():
                 prompt='consent'
             )
             
-            # Display the authorization URL and prompt for the code
-            st.write(f"Please visit this URL to authorize the application: {auth_url}")
-            auth_code = st.text_input("Enter the authorization code:")
+            # Display instructions
+            st.markdown("""
+            ### Authorization Steps:
+            1. Click the link below to authorize the application
+            2. After authorizing, you'll be redirected to a page that might show an error - this is expected
+            3. Copy the entire URL from your browser's address bar after being redirected
+            4. Paste the URL in the text box below
+            """)
             
-            if auth_code:
+            st.markdown(f"[Click here to authorize the application]({auth_url})")
+            
+            auth_response = st.text_input("Paste the full redirect URL here:")
+            
+            if auth_response:
                 try:
+                    # Extract the authorization code from the full redirect URL
+                    from urllib.parse import urlparse, parse_qs
+                    parsed = urlparse(auth_response)
+                    auth_code = parse_qs(parsed.query)['code'][0]
+                    
                     flow.fetch_token(code=auth_code)
                     creds = flow.credentials
                     with open('token.json', 'w') as token:
@@ -75,7 +88,7 @@ def authenticate_google():
                     st.error(f"Error during authentication: {str(e)}")
                     return None
             else:
-                st.error("Authorization code is required.")
+                st.info("Please paste the redirect URL to complete authentication.")
                 return None
     return creds
 
