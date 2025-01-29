@@ -39,9 +39,18 @@ def authenticate_google():
                 }
             }
             flow = InstalledAppFlow.from_client_config(client_config, SCOPES)
-            creds = flow.run_local_server(port=0)
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
+            # Use the console flow instead of local_server
+            auth_url, _ = flow.authorization_url(prompt='consent')
+            st.write(f"Please visit this URL to authorize the application: {auth_url}")
+            auth_code = st.text_input("Enter the authorization code:")
+            if auth_code:
+                flow.fetch_token(code=auth_code)
+                creds = flow.credentials
+                with open('token.json', 'w') as token:
+                    token.write(creds.to_json())
+            else:
+                st.error("Authorization code is required.")
+                return None
     return creds
 
 def add_contact(service, name, phone):
@@ -73,13 +82,16 @@ def main():
             if st.button("Add Contacts to Google"):
                 with st.spinner("Authenticating and adding contacts..."):
                     creds = authenticate_google()
-                    service = build('people', 'v1', credentials=creds)
-                    
-                    # Loop through contacts and add them
-                    for contact in contacts:
-                        name, phone = contact
-                        add_contact(service, name, phone)
-                    st.success("Contacts added successfully!")
+                    if creds:
+                        service = build('people', 'v1', credentials=creds)
+                        
+                        # Loop through contacts and add them
+                        for contact in contacts:
+                            name, phone = contact
+                            add_contact(service, name, phone)
+                        st.success("Contacts added successfully!")
+                    else:
+                        st.error("Authentication failed. Please try again.")
         else:
             st.error("The Excel file must contain 'Name' and 'Phone' columns.")
 
