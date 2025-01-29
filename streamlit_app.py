@@ -27,7 +27,6 @@ def authenticate_google():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            # Use secrets from st.secrets
             client_config = {
                 "web": {
                     "client_id": st.secrets["google"]["client_id"],
@@ -35,10 +34,8 @@ def authenticate_google():
                     "auth_uri": st.secrets["google"]["auth_uri"],
                     "token_uri": st.secrets["google"]["token_uri"],
                     "redirect_uris": [
-                        "https://exceltocontacts.streamlit.app",
-                        "https://exceltocontacts.streamlit.app/",
-                        "http://localhost:8501",
-                        "http://localhost:8501/"
+                        "https://exceltocontacts.streamlit.app/oauth2callback",
+                        "http://localhost:8501/oauth2callback"
                     ],
                     "javascript_origins": [
                         "https://exceltocontacts.streamlit.app",
@@ -50,17 +47,15 @@ def authenticate_google():
             flow = Flow.from_client_config(
                 client_config,
                 scopes=SCOPES,
-                redirect_uri="https://exceltocontacts.streamlit.app"
+                redirect_uri="https://exceltocontacts.streamlit.app/oauth2callback"
             )
             
-            # Generate the authorization URL
             auth_url, _ = flow.authorization_url(
                 access_type='offline',
                 include_granted_scopes='true',
                 prompt='consent'
             )
             
-            # Display instructions
             st.markdown("""
             ### Authorization Steps:
             1. Click the link below to authorize the application
@@ -75,7 +70,6 @@ def authenticate_google():
             
             if auth_response:
                 try:
-                    # Extract the authorization code from the full redirect URL
                     from urllib.parse import urlparse, parse_qs
                     parsed = urlparse(auth_response)
                     auth_code = parse_qs(parsed.query)['code'][0]
