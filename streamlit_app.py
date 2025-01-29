@@ -34,8 +34,16 @@ def authenticate_google():
                     "client_secret": st.secrets["google"]["client_secret"],
                     "auth_uri": st.secrets["google"]["auth_uri"],
                     "token_uri": st.secrets["google"]["token_uri"],
-                    "redirect_uris": [st.secrets["google"]["redirect_uri"]],
-                    "javascript_origins": [st.secrets["google"]["redirect_uri"].rstrip("/")]
+                    "redirect_uris": [
+                        "https://exceltocontacts.streamlit.app",
+                        "https://exceltocontacts.streamlit.app/",
+                        "http://localhost:8501",
+                        "http://localhost:8501/"
+                    ],
+                    "javascript_origins": [
+                        "https://exceltocontacts.streamlit.app",
+                        "http://localhost:8501"
+                    ]
                 }
             }
             
@@ -43,7 +51,7 @@ def authenticate_google():
             flow = Flow.from_client_config(
                 client_config,
                 scopes=SCOPES,
-                redirect_uri=st.secrets["google"]["redirect_uri"]
+                redirect_uri="https://exceltocontacts.streamlit.app"  # Match exactly with Google Cloud Console
             )
             
             # Generate the authorization URL
